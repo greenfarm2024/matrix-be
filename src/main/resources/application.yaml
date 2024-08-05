@@ -1,0 +1,17 @@
+spring:
+  application:
+    name: matrix
+
+  datasource:
+    url: jdbc:postgresql://localhost:5432/thgroupdb
+    username: matrix
+    password: matrix
+  jpa:
+    properties:
+      hibernate:
+        jdbc:
+          lob:
+            non_contextual_creation: true
+        dialect: org.hibernate.dialect.PostgreSQLDialect
+    hibernate:
+      ddl-auto: update
