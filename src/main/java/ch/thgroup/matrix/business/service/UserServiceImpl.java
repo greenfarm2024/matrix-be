@@ -11,7 +11,6 @@ import org.springframework.stereotype.Service;
 import java.util.List;
 import java.util.Optional;
 import java.util.stream.Collectors;
-import java.util.stream.StreamSupport;
 
 @Service
 public class UserServiceImpl implements UserService {
@@ -23,34 +22,45 @@ public class UserServiceImpl implements UserService {
         this.userRepository = userRepository;
     }
 
-    public List<UserDTO> getAllUsers() {
+    @Override
+    public List<UserDTO> fetchAllUsers() {
         return userRepository.findAll().stream()
                 .map(UserMapper::toDTO)
                 .collect(Collectors.toList());
     }
 
-    public UserDTO getUserById(long userId) {
+    @Override
+    public Optional<UserDTO> fetchUserById(Long userId) {
+        if (userId == null) {
+            throw new IllegalArgumentException("User ID cannot be null");
+        }
         return userRepository.findById(userId)
-                .map(UserMapper::toDTO)
-                .orElseThrow(() -> new NotFoundException("No user found with ID = " + userId));
+                .map(UserMapper::toDTO);
     }
 
-    public void createUser(UserDTO userDTO) {
+    @Override
+    public void addUser(UserDTO userDTO) {
         UserEntity userEntity = UserMapper.toEntity(userDTO);
         userRepository.save(userEntity);
     }
 
-    public UserDTO updateUser(Long userId, UserDTO userDTO) {
-        UserEntity userEntity = userRepository.findById(userId)
-                .orElseThrow(() -> new RuntimeException("User not found"));
-        userEntity.setUserName(userDTO.getUserName());
-        userEntity.setFirstName(userDTO.getFirstName());
-        userEntity.setLastName(userDTO.getLastName());
-        userEntity.setSex(userDTO.getSex());
-        return UserMapper.toDTO(userRepository.save(userEntity));
+    @Override
+    public Optional<UserDTO> updateUser(Long userId, UserDTO userDTO) {
+        return userRepository.findById(userId)
+                .map(userEntity -> {
+                    userEntity.setUserName(userDTO.getUserName());
+                    userEntity.setFirstName(userDTO.getFirstName());
+                    userEntity.setLastName(userDTO.getLastName());
+                    userEntity.setSex(userDTO.getSex());
+                    return UserMapper.toDTO(userRepository.save(userEntity));
+                });
     }
 
-    public void deleteUser(Long userId) {
+    @Override
+    public void removeUser(Long userId) {
+        if (!userRepository.existsById(userId)) {
+            throw new NotFoundException("User not found with ID = " + userId);
+        }
         userRepository.deleteById(userId);
     }
 }

@@ -20,30 +20,34 @@ public class UserController {
         this.userService = userService;
     }
 
-    @GetMapping("/users")
-    public List<UserDTO> getAllUsers() {
-        return userService.getAllUsers();
+    @GetMapping("/fetchallusers")
+    public List<UserDTO> fetchAllUsers() {
+        return userService.fetchAllUsers();
     }
 
-    @GetMapping("/{userId}")
-    public ResponseEntity<UserDTO> getUserById(@PathVariable Long userId) {
-        return ResponseEntity.ok(userService.getUserById(userId));
+    @GetMapping("/fetchuserbyid/{userId}")
+    public ResponseEntity<UserDTO> fetchUserById(@PathVariable Long userId) {
+        return userService.fetchUserById(userId)
+                .map(ResponseEntity::ok)
+                .orElseGet(() -> ResponseEntity.status(HttpStatus.NOT_FOUND).build());
     }
 
     @PostMapping("/adduser")
-    public ResponseEntity<Void> createUser(@Valid @RequestBody UserDTO userDTO) {
-        userService.createUser(userDTO);
-        return new ResponseEntity<>(HttpStatus.OK);
+    public ResponseEntity<Void> addUser(@Valid @RequestBody UserDTO userDTO) {
+        userService.addUser(userDTO);
+        return new ResponseEntity<>(HttpStatus.CREATED);
     }
 
     @PutMapping("/updateuser/{id}")
     public ResponseEntity<UserDTO> updateUser(@PathVariable Long id, @RequestBody UserDTO userDTO) {
-        return ResponseEntity.ok(userService.updateUser(id, userDTO));
+        return userService.updateUser(id, userDTO)
+                .map(ResponseEntity::ok)
+                .orElseGet(() -> ResponseEntity.status(HttpStatus.NOT_FOUND).build());
     }
 
     @DeleteMapping("/deleteuser/{userId}")
-    public ResponseEntity<Void> deleteUser(@PathVariable Long userId) {
-        userService.deleteUser(userId);
-        return new ResponseEntity<>(HttpStatus.OK);
+    public ResponseEntity<Void> removeUser(@PathVariable Long userId) {
+        userService.removeUser(userId);
+        return new ResponseEntity<>(HttpStatus.NO_CONTENT);
     }
 }
