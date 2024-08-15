@@ -3,6 +3,7 @@ package ch.thgroup.matrix.business.controller;
 import ch.thgroup.matrix.business.dto.UserDTO;
 import ch.thgroup.matrix.business.service.UserService;
 import jakarta.validation.Valid;
+import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
@@ -12,13 +13,10 @@ import java.util.List;
 @CrossOrigin(origins = "http://localhost:4200")
 @RestController
 @RequestMapping(ApplicationPaths.API_PATH + "/user")
+@RequiredArgsConstructor
 public class UserController {
 
     private final UserService userService;
-
-    public UserController(UserService userService) {
-        this.userService = userService;
-    }
 
     @GetMapping("/fetchallusers")
     public List<UserDTO> fetchAllUsers() {
