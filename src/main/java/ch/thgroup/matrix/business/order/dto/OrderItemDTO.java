@@ -1,9 +1,7 @@
 package ch.thgroup.matrix.business.order.dto;
 
-import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
-import lombok.NoArgsConstructor;
 
 import java.math.BigDecimal;
 import java.time.LocalDateTime;
@@ -25,12 +23,15 @@ public class OrderItemDTO {
     private Integer delivUnit;
     private Integer delivUnitChr;
     private Integer delivSupp1;
+    private Integer confSupp1;
     private Short undelSupp1;
     private Short realSupp1;
     private Integer delivSupp2;
+    private Integer confSupp2;
     private Short undelSupp2;
     private Short realSupp2;
     private Integer delivSupp3;
+    private Integer confSupp3;
     private Short undelSupp3;
     private Short realSupp3;
     private Short alert;

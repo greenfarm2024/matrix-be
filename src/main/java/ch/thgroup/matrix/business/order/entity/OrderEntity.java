@@ -5,6 +5,7 @@ import ch.thgroup.matrix.business.common.BaseEntity;
 import ch.thgroup.matrix.business.admin.entity.UserEntity;
 import jakarta.validation.constraints.NotNull;
 import lombok.Data;
+import lombok.EqualsAndHashCode;
 import lombok.NoArgsConstructor;
 import lombok.AllArgsConstructor;
 
@@ -16,6 +17,7 @@ import java.time.LocalDate;
 @Data
 @NoArgsConstructor
 @AllArgsConstructor
+@EqualsAndHashCode(callSuper = false)
 @Table(name = "orders", schema = "matrix")
 public class OrderEntity extends BaseEntity {
 

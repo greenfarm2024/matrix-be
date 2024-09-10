@@ -7,6 +7,7 @@ import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.stereotype.Repository;
 
 import java.util.List;
+import java.util.Optional;
 
 @Repository
 public interface OrderItemRepository extends JpaRepository<OrderItemEntity, Long> {
@@ -14,4 +15,9 @@ public interface OrderItemRepository extends JpaRepository<OrderItemEntity, Long
     List<OrderItemEntity> findByOrder(OrderEntity order);
 
     void deleteByOrderAndArticle(OrderEntity order, ArticleEntity article);
+
+    Optional<OrderItemEntity> findByOrderItemId(Long orderItemId);
+
+    List<OrderItemEntity> findByOrderItemIdIn(List<Long> orderItemIds);
+
 }

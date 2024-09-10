@@ -3,19 +3,19 @@ package ch.thgroup.matrix.business.article.entity;
 import ch.thgroup.matrix.business.admin.entity.UserEntity;
 import ch.thgroup.matrix.business.common.BaseEntity;
 import lombok.Data;
+import lombok.EqualsAndHashCode;
 import lombok.NoArgsConstructor;
 import lombok.AllArgsConstructor;
-import lombok.Builder;
 
 import jakarta.persistence.*;
 import java.math.BigDecimal;
-import java.time.LocalDateTime;
 
 @Entity
 @Table(name = "article", schema = "matrix")
 @Data
 @NoArgsConstructor
 @AllArgsConstructor
+@EqualsAndHashCode(callSuper = false)
 public class ArticleEntity extends BaseEntity {
 
     @Id

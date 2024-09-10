@@ -12,6 +12,7 @@ import ch.thgroup.matrix.business.order.repo.OrderItemRepository;
 import ch.thgroup.matrix.business.order.repo.OrderRepository;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.lang.NonNull;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -29,7 +30,7 @@ public class OrderItemServiceImpl implements OrderItemService {
 
     @Override
     @Transactional
-    public List<OrderItemDTO> crudOrderItemList(List<OrderItemDTO> orderItemListDTO) {
+    public List<OrderItemDTO> crudOrderItemList(@NonNull List<OrderItemDTO> orderItemListDTO) {
         try {
             var order = orderRepository.findById(orderItemListDTO.get(0).getOrderId()).orElseThrow(() -> {
                 log.error("Order not found with id: {}", orderItemListDTO.get(0).getOrderId());
@@ -73,7 +74,7 @@ public class OrderItemServiceImpl implements OrderItemService {
 
     @Override
     @Transactional(readOnly = true)
-    public List<OrderItemDTO> getOrderItemsByOrderId(Long orderId) {
+    public List<OrderItemDTO> getOrderItemsByOrderId(@NonNull Long orderId) {
         var order = orderRepository.findById(orderId).orElseThrow(() -> {
             log.error("Order not found with id: {}", orderId);
             return new IllegalArgumentException("Order not found");
@@ -81,6 +82,111 @@ public class OrderItemServiceImpl implements OrderItemService {
 
         List<OrderItemEntity> orderItemEntities = orderItemRepository.findByOrder(order);
         return OrderItemMapper.toDTOs(orderItemEntities);
+    }
+
+    @Override
+    @Transactional
+    public List<OrderItemDTO> distributionSplit(@NonNull List<OrderItemDTO> orderItemListDTO) {
+        try {
+            var getOrderItem = orderItemRepository.findByOrderItemId(orderItemListDTO.get(0).getOrderItemId()).orElseThrow(() -> {
+                log.error("Order item not found with id: {}", orderItemListDTO.get(0).getOrderItemId());
+                return new IllegalArgumentException("Order not found");
+            });
+
+            List<OrderItemEntity> orderItemEntities = orderItemRepository.findByOrder(getOrderItem.getOrder());
+
+            for (OrderItemDTO orderItemDTO : orderItemListDTO) {
+                var existingOrderItem = orderItemEntities.stream()
+                        .filter(orderItemEntity -> orderItemEntity.getOrderItemId().equals(orderItemDTO.getOrderItemId()))
+                        .findFirst()
+                        .orElse(null);
+
+                if (existingOrderItem != null) {
+                    handleDistributionSplit(orderItemDTO, existingOrderItem);
+                } else {
+                    log.error("Order item not found with id: {}", orderItemDTO.getOrderItemId());
+                    throw new RuntimeException("Order item not found with id: " + orderItemDTO.getOrderItemId());
+                }
+            }
+
+            return OrderItemMapper.toDTOs(orderItemRepository.findByOrder(getOrderItem.getOrder()));
+        } catch (IllegalArgumentException e) {
+            log.error("Error processing distribution split: {}", e.getMessage());
+            throw e;
+        } catch (Exception e) {
+            log.error("Unexpected error processing distribution split: {}", e.getMessage());
+            throw new RuntimeException("Unexpected error processing distribution split", e);
+        }
+    }
+
+    @Override
+    @Transactional
+    public List<OrderItemDTO> confirmationSupplier(@NonNull List<OrderItemDTO> orderItemListDTO) {
+        try {
+            OrderEntity order = null;
+
+            List<OrderItemEntity> orderItemEntities = orderItemRepository.findByOrderItemIdIn(orderItemListDTO.stream()
+                    .map(OrderItemDTO::getOrderItemId)
+                    .toList());
+
+            for (OrderItemDTO orderItemDTO : orderItemListDTO) {
+                var existingOrderItem = orderItemEntities.stream()
+                        .filter(orderItemEntity -> orderItemEntity.getOrderItemId().equals(orderItemDTO.getOrderItemId()))
+                        .findFirst()
+                        .orElse(null);
+
+                if (existingOrderItem != null) {
+                    order = existingOrderItem.getOrder();
+                    handleConfirmationSupplier(orderItemDTO, existingOrderItem);
+                } else {
+                    log.error("Order item for confirmation supplier not found with id: {}", orderItemDTO.getOrderItemId());
+                    throw new RuntimeException("Order item for confirmation supplier not found with id: " + orderItemDTO.getOrderItemId());
+                }
+            }
+
+            return OrderItemMapper.toDTOs(orderItemRepository.findByOrder(order));
+        } catch (IllegalArgumentException e) {
+            log.error("Error processing distribution split: {}", e.getMessage());
+            throw e;
+        } catch (Exception e) {
+            log.error("Unexpected error processing distribution split: {}", e.getMessage());
+            throw new RuntimeException("Unexpected error processing distribution split", e);
+        }
+    }
+
+    @Override
+    @Transactional
+    public List<OrderItemDTO> validateDeliveryQuantity(@NonNull List<OrderItemDTO> orderItemListDTO) {
+        try {
+            OrderEntity order = null;
+
+            List<OrderItemEntity> orderItemEntities = orderItemRepository.findByOrderItemIdIn(orderItemListDTO.stream()
+                    .map(OrderItemDTO::getOrderItemId)
+                    .toList());
+
+            for (OrderItemDTO orderItemDTO : orderItemListDTO) {
+                var existingOrderItem = orderItemEntities.stream()
+                        .filter(orderItemEntity -> orderItemEntity.getOrderItemId().equals(orderItemDTO.getOrderItemId()))
+                        .findFirst()
+                        .orElse(null);
+
+                if (existingOrderItem != null) {
+                    order = existingOrderItem.getOrder();
+                    handleValidateDeliveryQuantity(orderItemDTO, existingOrderItem, existingOrderItem.getArticle());
+                } else {
+                    log.error("Order item for confirmation supplier not found with id: {}", orderItemDTO.getOrderItemId());
+                    throw new RuntimeException("Order item for confirmation supplier not found with id: " + orderItemDTO.getOrderItemId());
+                }
+            }
+
+            return OrderItemMapper.toDTOs(orderItemRepository.findByOrder(order));
+        } catch (IllegalArgumentException e) {
+            log.error("Error processing distribution split: {}", e.getMessage());
+            throw e;
+        } catch (Exception e) {
+            log.error("Unexpected error processing distribution split: {}", e.getMessage());
+            throw new RuntimeException("Unexpected error processing distribution split", e);
+        }
     }
 
     private void handleExistingOrderItem(OrderItemDTO orderItemDTO, OrderItemEntity existingOrderItem, OrderEntity order, ArticleEntity article, UserEntity client) {
@@ -121,5 +227,64 @@ public class OrderItemServiceImpl implements OrderItemService {
         existingOrderItem.setDelivUnit(orderItemDTO.getDelivUnit());
         existingOrderItem.setUpdatedBy(orderItemDTO.getClientId().shortValue());
         orderItemRepository.save(existingOrderItem);
+    }
+
+    private void handleDistributionSplit(OrderItemDTO orderItemDTO, OrderItemEntity existingOrderItem) {
+        if (!orderItemDTO.getDelivSupp1().equals(existingOrderItem.getDelivSupp1())
+                || !orderItemDTO.getDelivSupp2().equals(existingOrderItem.getDelivSupp2())
+                || !orderItemDTO.getDelivSupp3().equals(existingOrderItem.getDelivSupp3())) {
+            updateDistributionSplit(existingOrderItem, orderItemDTO);
+            log.info("Distribution split successfully with id: {}", existingOrderItem.getOrderItemId());
+        }
+    }
+
+    private void updateDistributionSplit(OrderItemEntity existingOrderItem, OrderItemDTO orderItemDTO) {
+        existingOrderItem.setDelivSupp1(orderItemDTO.getDelivSupp1());
+        existingOrderItem.setDelivSupp2(orderItemDTO.getDelivSupp2());
+        existingOrderItem.setDelivSupp3(orderItemDTO.getDelivSupp3());
+        existingOrderItem.setUpdatedBy(orderItemDTO.getUpdatedBy());
+        orderItemRepository.save(existingOrderItem);
+    }
+
+    private void handleConfirmationSupplier(OrderItemDTO orderItemDTO, OrderItemEntity existingOrderItem) {
+        if (orderItemDTO.getConfSupp1() != null &&  !orderItemDTO.getConfSupp1().equals(existingOrderItem.getConfSupp1())) {
+            log.info("set confirmation supplier 1 for order item id: {}", existingOrderItem.getOrderItemId());
+            existingOrderItem.setConfSupp1(orderItemDTO.getConfSupp1());
+        } else if (orderItemDTO.getConfSupp2() != null && !orderItemDTO.getConfSupp2().equals(existingOrderItem.getConfSupp2())) {
+            log.info("set confirmation supplier 2 for order item id: {}", existingOrderItem.getOrderItemId());
+            existingOrderItem.setConfSupp2(orderItemDTO.getConfSupp2());
+        } else if (orderItemDTO.getConfSupp3() != null && !orderItemDTO.getConfSupp3().equals(existingOrderItem.getConfSupp3())) {
+            log.info("set confirmation supplier 3 for order item id: {}", existingOrderItem.getOrderItemId());
+            existingOrderItem.setConfSupp3(orderItemDTO.getConfSupp3());
+        }
+        existingOrderItem.setUpdatedBy(orderItemDTO.getUpdatedBy());
+        orderItemRepository.save(existingOrderItem);
+        log.info("confirmation supplier successfully with id: {}", existingOrderItem.getOrderItemId());
+    }
+
+    private void handleValidateDeliveryQuantity(OrderItemDTO orderItemDTO, OrderItemEntity existingOrderItem, ArticleEntity article) {
+        if (orderItemDTO.getRealSupp1() != null &&  !orderItemDTO.getRealSupp1().equals(existingOrderItem.getRealSupp1())) {
+            log.info("set real delivery for supplier 1 for order item id: {}", existingOrderItem.getOrderItemId());
+            existingOrderItem.setRealSupp1(orderItemDTO.getRealSupp1());
+            var undelSupp1 = (short) (existingOrderItem.getConfSupp1() - existingOrderItem.getRealSupp1());
+            existingOrderItem.setUndelSupp1(undelSupp1);
+            article.setUndelSupp1(undelSupp1);
+        } else if (orderItemDTO.getRealSupp2() != null && !orderItemDTO.getRealSupp2().equals(existingOrderItem.getRealSupp2())) {
+            log.info("set real delivery for supplier 2 for order item id: {}", existingOrderItem.getOrderItemId());
+            existingOrderItem.setRealSupp2(orderItemDTO.getRealSupp2());
+            var undelSupp2 = (short) (existingOrderItem.getConfSupp2() - existingOrderItem.getRealSupp2());
+            existingOrderItem.setUndelSupp2(undelSupp2);
+            article.setUndelSupp2(undelSupp2);
+        } else if (orderItemDTO.getRealSupp3() != null && !orderItemDTO.getRealSupp3().equals(existingOrderItem.getRealSupp3())) {
+            log.info("set real delivery for supplier 3 for order item id: {}", existingOrderItem.getOrderItemId());
+            existingOrderItem.setRealSupp3(orderItemDTO.getRealSupp3());
+            var undelSupp3 = (short) (existingOrderItem.getConfSupp3() - existingOrderItem.getRealSupp3());
+            existingOrderItem.setUndelSupp3(undelSupp3);
+            article.setUndelSupp3(undelSupp3);
+        }
+        existingOrderItem.setUpdatedBy(orderItemDTO.getUpdatedBy());
+        orderItemRepository.save(existingOrderItem);
+        articleRepository.save(article);
+        log.info("real delivery supplier successfully with id: {}", existingOrderItem.getOrderItemId());
     }
 }

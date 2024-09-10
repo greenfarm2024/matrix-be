@@ -8,4 +8,10 @@ public interface OrderItemService {
     List<OrderItemDTO> crudOrderItemList(List<OrderItemDTO> orderItemListDTO);
 
     List<OrderItemDTO> getOrderItemsByOrderId(Long orderId);
+
+    List<OrderItemDTO> distributionSplit(List<OrderItemDTO> orderItemListDTO);
+
+    List<OrderItemDTO> confirmationSupplier(List<OrderItemDTO> orderItemListDTO);
+
+    List<OrderItemDTO> validateDeliveryQuantity(List<OrderItemDTO> orderItemListDTO);
 }

@@ -6,6 +6,7 @@ import ch.thgroup.matrix.business.common.BaseEntity;
 import jakarta.persistence.*;
 import lombok.AllArgsConstructor;
 import lombok.Data;
+import lombok.EqualsAndHashCode;
 import lombok.NoArgsConstructor;
 
 import java.math.BigDecimal;
@@ -14,6 +15,7 @@ import java.math.BigDecimal;
 @Data
 @NoArgsConstructor
 @AllArgsConstructor
+@EqualsAndHashCode(callSuper = false)
 @Table(name = "orders_item")
 public class OrderItemEntity extends BaseEntity {
 
@@ -61,6 +63,9 @@ public class OrderItemEntity extends BaseEntity {
     @Column(name = "deliv_supp1", columnDefinition = "int default 0")
     private Integer delivSupp1;
 
+    @Column(name = "conf_supp1", columnDefinition = "int default 0")
+    private Integer confSupp1;
+
     @Column(name = "undel_supp1", columnDefinition = "smallint default 0")
     private Short undelSupp1;
 
@@ -70,6 +75,9 @@ public class OrderItemEntity extends BaseEntity {
     @Column(name = "deliv_supp2", columnDefinition = "int default 0")
     private Integer delivSupp2;
 
+    @Column(name = "conf_supp2", columnDefinition = "int default 0")
+    private Integer confSupp2;
+
     @Column(name = "undel_supp2", columnDefinition = "smallint default 0")
     private Short undelSupp2;
 
@@ -78,6 +86,9 @@ public class OrderItemEntity extends BaseEntity {
 
     @Column(name = "deliv_supp3", columnDefinition = "int default 0")
     private Integer delivSupp3;
+
+    @Column(name = "conf_supp3", columnDefinition = "int default 0")
+    private Integer confSupp3;
 
     @Column(name = "undel_supp3", columnDefinition = "smallint default 0")
     private Short undelSupp3;

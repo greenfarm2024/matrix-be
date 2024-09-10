@@ -1,7 +1,5 @@
 package ch.thgroup.matrix.business.order.service;
 
-import ch.thgroup.matrix.business.article.dto.ArticleDTO;
-import ch.thgroup.matrix.business.article.entity.ArticleEntity;
 import ch.thgroup.matrix.business.common.OrderStatus;
 import ch.thgroup.matrix.business.common.exception.NotFoundException;
 import ch.thgroup.matrix.business.order.dto.OrderDTO;

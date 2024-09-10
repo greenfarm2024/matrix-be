@@ -7,10 +7,8 @@ import ch.thgroup.matrix.business.article.dto.ArticleMapper;
 import ch.thgroup.matrix.business.article.entity.ArticleEntity;
 import ch.thgroup.matrix.business.article.repository.ArticleRepository;
 import ch.thgroup.matrix.business.common.exception.NotFoundException;
-import jakarta.persistence.EntityNotFoundException;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.dao.DataAccessException;
 import org.springframework.stereotype.Service;
 
 import java.util.List;

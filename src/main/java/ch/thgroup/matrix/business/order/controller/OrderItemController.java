@@ -50,4 +50,52 @@ public class OrderItemController {
             return new ResponseEntity<>(null, HttpStatus.INTERNAL_SERVER_ERROR);
         }
     }
+
+    @PutMapping(path = "/distributionsplit")
+    public ResponseEntity<List<OrderItemDTO>> distributionSplit(@RequestBody List<OrderItemDTO> orderItemListDTO) {
+        log.info("Received request to make distribution split");
+        try {
+            var createdOrderItemList = orderItemService.distributionSplit(orderItemListDTO);
+            log.info("Successfully processed distribution split");
+            return new ResponseEntity<>(createdOrderItemList, HttpStatus.CREATED);
+        } catch (IllegalArgumentException e) {
+            log.error("Error processing distribution split: {}", e.getMessage());
+            return new ResponseEntity<>(null, HttpStatus.BAD_REQUEST);
+        } catch (Exception e) {
+            log.error("Unexpected error processing distribution split: {}", e.getMessage());
+            return new ResponseEntity<>(null, HttpStatus.INTERNAL_SERVER_ERROR);
+        }
+    }
+
+    @PutMapping(path = "/confirmationsupplier")
+    public ResponseEntity<List<OrderItemDTO>> confirmationSupplier(@RequestBody List<OrderItemDTO> orderItemListDTO) {
+        log.info("Received request to make confirmation supplier");
+        try {
+            var createdOrderItemList = orderItemService.confirmationSupplier(orderItemListDTO);
+            log.info("Successfully processed confirmation supplier");
+            return new ResponseEntity<>(createdOrderItemList, HttpStatus.CREATED);
+        } catch (IllegalArgumentException e) {
+            log.error("Error processing confirmation supplier: {}", e.getMessage());
+            return new ResponseEntity<>(null, HttpStatus.BAD_REQUEST);
+        } catch (Exception e) {
+            log.error("Unexpected error processing confirmation supplier: {}", e.getMessage());
+            return new ResponseEntity<>(null, HttpStatus.INTERNAL_SERVER_ERROR);
+        }
+    }
+
+    @PutMapping(path = "/validatedeliveryquantity")
+    public ResponseEntity<List<OrderItemDTO>> validateDeliveryQuantity(@RequestBody List<OrderItemDTO> orderItemListDTO) {
+        log.info("Received request to validate delivery quantity");
+        try {
+            var createdOrderItemList = orderItemService.validateDeliveryQuantity(orderItemListDTO);
+            log.info("Successfully processed validate delivery quantity");
+            return new ResponseEntity<>(createdOrderItemList, HttpStatus.CREATED);
+        } catch (IllegalArgumentException e) {
+            log.error("Error processing validate delivery quantity: {}", e.getMessage());
+            return new ResponseEntity<>(null, HttpStatus.BAD_REQUEST);
+        } catch (Exception e) {
+            log.error("Unexpected error processing validate delivery quantity: {}", e.getMessage());
+            return new ResponseEntity<>(null, HttpStatus.INTERNAL_SERVER_ERROR);
+        }
+    }
 }

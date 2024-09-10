@@ -1,10 +1,7 @@
 package ch.thgroup.matrix.business.admin.entity;
 
 import ch.thgroup.matrix.business.common.BaseEntity;
-import lombok.Data;
-import lombok.NoArgsConstructor;
-import lombok.AllArgsConstructor;
-import lombok.Builder;
+import lombok.*;
 import jakarta.persistence.*;
 import org.springframework.security.core.GrantedAuthority;
 import org.springframework.security.core.authority.SimpleGrantedAuthority;
@@ -17,6 +14,7 @@ import java.util.List;
 @NoArgsConstructor
 @AllArgsConstructor
 @Builder
+@EqualsAndHashCode(callSuper = false)
 @Entity
 @Table(name = "users", schema = "matrix")
 public class UserEntity extends BaseEntity implements UserDetails  {
