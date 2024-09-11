@@ -14,4 +14,6 @@ public interface OrderItemService {
     List<OrderItemDTO> confirmationSupplier(List<OrderItemDTO> orderItemListDTO);
 
     List<OrderItemDTO> validateDeliveryQuantity(List<OrderItemDTO> orderItemListDTO);
+
+    void publishOrder(Long orderId);
 }

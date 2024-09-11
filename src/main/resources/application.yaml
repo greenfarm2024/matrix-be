@@ -1,6 +1,20 @@
+common:
+  mail:
+    smtp:
+      host: "mail.gmx.net"
+      port: 587
+      authentication: true
+      username: "greenshop-uat@gmx.ch"
+      password: "Bucuresti123z"
+      tls: true
+    sender: "greenshop-uat@gmx.ch"
+
+
 spring:
   application:
     name: matrix
+  config:
+    import: "classpath:application-templates.yaml"
 
   datasource:
     url: jdbc:postgresql://localhost:5432/thgroupdb

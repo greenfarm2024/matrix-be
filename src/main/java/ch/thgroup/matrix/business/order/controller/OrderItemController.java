@@ -98,4 +98,11 @@ public class OrderItemController {
             return new ResponseEntity<>(null, HttpStatus.INTERNAL_SERVER_ERROR);
         }
     }
+
+    @GetMapping(path = "/publishorder/{orderId}")
+    public ResponseEntity<Void> publishOrder(@PathVariable Long orderId) {
+        orderItemService.publishOrder(orderId);
+        return new ResponseEntity<>(HttpStatus.OK);
+    }
+
 }

@@ -2,6 +2,9 @@ package ch.thgroup.matrix.business.order.service;
 
 import ch.thgroup.matrix.business.common.OrderStatus;
 import ch.thgroup.matrix.business.common.exception.NotFoundException;
+import ch.thgroup.matrix.business.mail.Language;
+import ch.thgroup.matrix.business.mail.MailType;
+import ch.thgroup.matrix.business.mail.SendMailService;
 import ch.thgroup.matrix.business.order.dto.OrderDTO;
 import ch.thgroup.matrix.business.order.dto.OrderMapper;
 import ch.thgroup.matrix.business.order.entity.OrderEntity;
@@ -9,9 +12,11 @@ import ch.thgroup.matrix.business.order.repo.OrderRepository;
 import ch.thgroup.matrix.business.admin.repo.UserRepository;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.mail.SimpleMailMessage;
 import org.springframework.stereotype.Service;
 
 import java.util.List;
+import java.util.Map;
 import java.util.stream.Collectors;
 
 @Service

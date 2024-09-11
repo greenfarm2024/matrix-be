@@ -1,0 +1,105 @@
+common.mail.template:
+  html:
+    begin: |
+      <!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN">
+      <html>
+      <head><meta charset="UTF-8"></head>
+      <body style="font-family: Arial, Helvetica, sans-serif;">
+    end: |
+      </body>
+      </html>
+  link-alt:
+    EN: "If this doesn't work, please copy the following website address into your browser navigation bar and open the website:"
+    FR: "En cas de problème, veuillez copier l'adresse internet suivante dans la barre d'adresse du navigateur et ouvrir la page internet :"
+    DE: "Falls dies nicht funktioniert, kopieren Sie bitte die folgende Web-Adresse in das Adressfeld des Webbrowsers und öffnen Sie die Webseite:"
+    IT: "Se non funziona, la preghiamo di copiare il seguente indirizzo web, di inserirlo nella barra degli indirizzi del browser e di aprire il sito:"
+  signature:
+    html:
+      EN: |
+        <div>Kind regards</div>
+        <br>
+        <div>TH GROUP Switzerland AG</div>
+        <div>friedemann.gipp@thgroup.ch</div>
+        <div>www.thgroup-switzerland.ch</div>
+      FR: |
+        <div>Meilleures salutations</div>
+        <br>
+        <div>TH GROUP Switzerland AG</div>
+        <div>friedemann.gipp@thgroup.ch</div>
+        <div>www.thgroup-switzerland.ch</div>
+      DE: |
+        <div>Freundliche Grüsse</div>
+        <br>
+        <div>TH GROUP Switzerland AG</div>
+        <div>friedemann.gipp@thgroup.ch</div>
+        <div>www.thgroup-switzerland.ch</div>
+      IT: |
+        <div>Distinti saluti</div>
+        <br>
+        <div>TH GROUP Switzerland AG</div>
+        <div>friedemann.gipp@thgroup.ch</div>
+        <div>www.thgroup-switzerland.ch</div>
+    plain:
+      EN: |
+        Kind regards
+
+        TH GROUP Switzerland AG
+        friedemann.gipp@thgroup.ch
+        www.thgroup-switzerland.ch
+      FR: |
+        Meilleures salutations
+
+        TH GROUP Switzerland AG
+        friedemann.gipp@thgroup.ch
+        www.thgroup-switzerland.ch
+      DE: |
+        Freundliche Grüsse
+
+        TH GROUP Switzerland AG
+        friedemann.gipp@thgroup.ch
+        www.thgroup-switzerland.ch
+      IT: |
+        Distinti saluti
+
+        TH GROUP Switzerland AG
+        friedemann.gipp@thgroup.ch
+        www.thgroup-switzerland.ch
+  publish.order:
+    EN:
+      subject: "The order id {orderid} with revision {revision} have been published"
+      body: |
+        ${common.mail.template.html.begin}
+        <div>Dear {client},</div>
+        <br>
+        <div>We would like to inform you that we have received your order {orderid} with revision {revision}, and it is currently being processed.</div>
+        <div>The title of the order is << {title} >> and the delivery date is {deliverydate}.</div>
+        <br>
+        <div>Please find below the list of requested products:</div>
+        {orderitemslist}
+        <br>
+        <div>If this list does not match your expectations, please do not hesitate to contact us as soon as possible.</div>
+        <br>
+        <div>Thank you for your collaboration, and we remain at your disposal for any further clarifications.</div>
+        <br>
+
+        ${common.mail.template.signature.html.EN}
+        ${common.mail.template.html.end}
+    DE:
+      subject: "Die Bestell-ID {orderid} mit der Revision {revision} wurde veröffentlicht."
+      body: |
+        ${common.mail.template.html.begin}
+        <div>Sehr geehrter {client},</div>
+        <br>
+        <div>Wir möchten Sie darüber informieren, dass wir Ihre Bestellung {orderid} mit der Revision {revision} erhalten haben und diese derzeit bearbeitet wird.</div>
+        <div>Der Titel der Bestellung lautet << {title} >> und das Lieferdatum ist {deliverydate}.</div>
+        <br>
+        <div>Im Folgenden finden Sie die Liste der angeforderten Produkte:</div>
+        {orderitemslist}
+        <br>
+        <div>Sollte diese Liste nicht Ihren Erwartungen entsprechen, zögern Sie bitte nicht, uns so schnell wie möglich zu kontaktieren.</div>
+        <br>
+        <div>Vielen Dank für Ihre Zusammenarbeit. Für weitere Rückfragen stehen wir Ihnen jederzeit gerne zur Verfügung.</div>
+        <br>
+
+        ${common.mail.template.signature.html.DE}
+        ${common.mail.template.html.end}

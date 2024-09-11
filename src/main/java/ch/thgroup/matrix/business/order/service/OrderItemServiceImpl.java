@@ -4,6 +4,10 @@ import ch.thgroup.matrix.business.admin.entity.UserEntity;
 import ch.thgroup.matrix.business.admin.repo.UserRepository;
 import ch.thgroup.matrix.business.article.entity.ArticleEntity;
 import ch.thgroup.matrix.business.article.repository.ArticleRepository;
+import ch.thgroup.matrix.business.common.OrderStatus;
+import ch.thgroup.matrix.business.mail.Language;
+import ch.thgroup.matrix.business.mail.MailType;
+import ch.thgroup.matrix.business.mail.SendMailService;
 import ch.thgroup.matrix.business.order.dto.OrderItemDTO;
 import ch.thgroup.matrix.business.order.dto.OrderItemMapper;
 import ch.thgroup.matrix.business.order.entity.OrderEntity;
@@ -17,6 +21,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.util.List;
+import java.util.Map;
 
 @Service
 @RequiredArgsConstructor
@@ -27,6 +32,7 @@ public class OrderItemServiceImpl implements OrderItemService {
     private final UserRepository userRepository;
     private final ArticleRepository articleRepository;
     private final OrderRepository orderRepository;
+    private final SendMailService sendMailService;
 
     @Override
     @Transactional
@@ -88,8 +94,8 @@ public class OrderItemServiceImpl implements OrderItemService {
     @Transactional
     public List<OrderItemDTO> distributionSplit(@NonNull List<OrderItemDTO> orderItemListDTO) {
         try {
-            var getOrderItem = orderItemRepository.findByOrderItemId(orderItemListDTO.get(0).getOrderItemId()).orElseThrow(() -> {
-                log.error("Order item not found with id: {}", orderItemListDTO.get(0).getOrderItemId());
+            var getOrderItem = orderItemRepository.findByOrderItemId(orderItemListDTO.getFirst().getOrderItemId()).orElseThrow(() -> {
+                log.error("Order item not found with id: {}", orderItemListDTO.getFirst().getOrderItemId());
                 return new IllegalArgumentException("Order not found");
             });
 
@@ -286,5 +292,44 @@ public class OrderItemServiceImpl implements OrderItemService {
         orderItemRepository.save(existingOrderItem);
         articleRepository.save(article);
         log.info("real delivery supplier successfully with id: {}", existingOrderItem.getOrderItemId());
+    }
+
+    @Override
+    @Transactional
+    public void publishOrder(Long orderId) {
+        var orderEntity = orderRepository.findByOrderIdAndActiveTrue(orderId).orElseThrow(() -> {
+            log.error("Active order not found with id: {}", orderId);
+            return new IllegalArgumentException("Active order not found");
+        });
+
+        if (orderEntity.getOrderItems().isEmpty()) {
+            log.error("Order has no items to publish");
+            throw new IllegalArgumentException("Order has no items to publish");
+        }
+
+        orderEntity.setOrderStatus(OrderStatus.PUBLISHED);
+        orderRepository.save(orderEntity);
+
+        StringBuilder orderItemsTable = new StringBuilder("<table style='border-collapse: collapse; width: 100%;'>");
+        orderItemsTable.append("<tr><th style='border: 1px solid black; padding: 8px;'>Artikelname</th><th style='border: 1px solid black; padding: 8px;'>Liefermenge</th><th style='border: 1px solid black; padding: 8px;'>Verkaufseinheit</th></tr>");
+        for (OrderItemEntity orderItem : orderEntity.getOrderItems()) {
+            orderItemsTable.append("<tr>")
+                    .append("<td style='border: 1px solid black; padding: 8px;'>").append(orderItem.getArtNameDe()).append("</td>")
+                    .append("<td style='border: 1px solid black; padding: 8px;'>").append(orderItem.getDelivUnit()).append("</td>")
+                    .append("<td style='border: 1px solid black; padding: 8px;'>").append(orderItem.getSaleUnit()).append("</td>")
+                    .append("</tr>");
+        }
+        orderItemsTable.append("</table>");
+
+        sendMailService.sendMail(MailType.PUBLISH_ORDER,
+                Map.of("orderid", orderEntity.getOrderId().toString(),
+                        "revision", orderEntity.getRevision().toString(),
+                        "client", orderEntity.getClient().getFirstName(),
+                        "orderitemslist", orderItemsTable.toString(),
+                        "title", orderEntity.getOrderTitle(),
+                        "deliverydate", orderEntity.getDeliveryDate().toString()
+                ),
+                "cristian.voinicaru@thgroup.ch",
+                Language.DE);
     }
 }
