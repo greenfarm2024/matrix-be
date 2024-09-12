@@ -272,19 +272,19 @@ public class OrderItemServiceImpl implements OrderItemService {
         if (orderItemDTO.getRealSupp1() != null &&  !orderItemDTO.getRealSupp1().equals(existingOrderItem.getRealSupp1())) {
             log.info("set real delivery for supplier 1 for order item id: {}", existingOrderItem.getOrderItemId());
             existingOrderItem.setRealSupp1(orderItemDTO.getRealSupp1());
-            var undelSupp1 = (short) (existingOrderItem.getConfSupp1() - existingOrderItem.getRealSupp1());
+            var  undelSupp1 = (short) (existingOrderItem.getRealSupp1() - existingOrderItem.getConfSupp1());
             existingOrderItem.setUndelSupp1(undelSupp1);
             article.setUndelSupp1(undelSupp1);
         } else if (orderItemDTO.getRealSupp2() != null && !orderItemDTO.getRealSupp2().equals(existingOrderItem.getRealSupp2())) {
             log.info("set real delivery for supplier 2 for order item id: {}", existingOrderItem.getOrderItemId());
             existingOrderItem.setRealSupp2(orderItemDTO.getRealSupp2());
-            var undelSupp2 = (short) (existingOrderItem.getConfSupp2() - existingOrderItem.getRealSupp2());
+            var  undelSupp2 = (short) (existingOrderItem.getRealSupp2() - existingOrderItem.getConfSupp2());
             existingOrderItem.setUndelSupp2(undelSupp2);
-            article.setUndelSupp2(undelSupp2);
+            article.setUndelSupp1(undelSupp2);
         } else if (orderItemDTO.getRealSupp3() != null && !orderItemDTO.getRealSupp3().equals(existingOrderItem.getRealSupp3())) {
             log.info("set real delivery for supplier 3 for order item id: {}", existingOrderItem.getOrderItemId());
             existingOrderItem.setRealSupp3(orderItemDTO.getRealSupp3());
-            var undelSupp3 = (short) (existingOrderItem.getConfSupp3() - existingOrderItem.getRealSupp3());
+            var  undelSupp3 = (short) (existingOrderItem.getRealSupp3() - existingOrderItem.getConfSupp3());
             existingOrderItem.setUndelSupp3(undelSupp3);
             article.setUndelSupp3(undelSupp3);
         }
