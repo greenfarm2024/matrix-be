@@ -37,14 +37,15 @@ public class OrderItemServiceImpl implements OrderItemService {
     @Override
     @Transactional
     public List<OrderItemDTO> crudOrderItemList(@NonNull List<OrderItemDTO> orderItemListDTO) {
+        var isChangeRequest = false;
         try {
-            var order = orderRepository.findById(orderItemListDTO.get(0).getOrderId()).orElseThrow(() -> {
-                log.error("Order not found with id: {}", orderItemListDTO.get(0).getOrderId());
+            var order = orderRepository.findById(orderItemListDTO.getFirst().getOrderId()).orElseThrow(() -> {
+                log.error("Order not found with id: {}", orderItemListDTO.getFirst().getOrderId());
                 return new IllegalArgumentException("Order not found");
             });
 
-            var client = userRepository.findById(orderItemListDTO.get(0).getClientId()).orElseThrow(() -> {
-                log.error("Client not found with id: {}", orderItemListDTO.get(0).getClientId());
+            var client = userRepository.findById(orderItemListDTO.getFirst().getClientId()).orElseThrow(() -> {
+                log.error("Client not found with id: {}", orderItemListDTO.getFirst().getClientId());
                 return new IllegalArgumentException("Client not found");
             });
 
@@ -62,12 +63,14 @@ public class OrderItemServiceImpl implements OrderItemService {
                         .orElse(null);
 
                 if (existingOrderItem != null) {
-                    handleExistingOrderItem(orderItemDTO, existingOrderItem, order, article, client);
+                    handleExistingOrderItem(orderItemDTO, existingOrderItem, order, article);
                 } else if (orderItemDTO.getDelivUnit() != null && orderItemDTO.getDelivUnit() != 0) {
-                    createNewOrderItem(orderItemDTO, order, article, client);
+                    createNewOrderItem(orderItemDTO, order, article, client, isChangeRequest);
                 }
             }
 
+            order.setChangeRequest(false);
+            orderRepository.save(order);
             return OrderItemMapper.toDTOs(orderItemRepository.findByOrder(order));
         } catch (IllegalArgumentException e) {
             log.error("Error processing order items: {}", e.getMessage());
@@ -195,7 +198,7 @@ public class OrderItemServiceImpl implements OrderItemService {
         }
     }
 
-    private void handleExistingOrderItem(OrderItemDTO orderItemDTO, OrderItemEntity existingOrderItem, OrderEntity order, ArticleEntity article, UserEntity client) {
+    private void handleExistingOrderItem(OrderItemDTO orderItemDTO, OrderItemEntity existingOrderItem, OrderEntity order, ArticleEntity article) {
         if (orderItemDTO.getDelivUnit() == null || orderItemDTO.getDelivUnit() == 0) {
             orderItemRepository.deleteByOrderAndArticle(order, article);
             log.info("Order item deleted successfully with id: {}", existingOrderItem.getOrderItemId());
@@ -205,7 +208,7 @@ public class OrderItemServiceImpl implements OrderItemService {
         }
     }
 
-    private void createNewOrderItem(OrderItemDTO orderItemDTO, OrderEntity order, ArticleEntity article, UserEntity client) {
+    private void createNewOrderItem(OrderItemDTO orderItemDTO, OrderEntity order, ArticleEntity article, UserEntity client, boolean isChangeRequest) {
         OrderItemEntity newOrderItemEntity = new OrderItemEntity();
         newOrderItemEntity.setArticle(article);
         newOrderItemEntity.setOrder(order);
@@ -216,7 +219,12 @@ public class OrderItemServiceImpl implements OrderItemService {
         newOrderItemEntity.setArtNameDe(article.getArtNameDe());
         newOrderItemEntity.setArtNameEn(article.getArtNameEn());
         newOrderItemEntity.setArtNameTh(article.getArtNameTh());
-        newOrderItemEntity.setDelivUnit(orderItemDTO.getDelivUnit());
+        if (isChangeRequest) {
+            newOrderItemEntity.setDelivUnitChr(orderItemDTO.getDelivUnitChr());
+        } else {
+            newOrderItemEntity.setDelivUnit(orderItemDTO.getDelivUnit());
+            newOrderItemEntity.setDelivUnitChr(orderItemDTO.getDelivUnit());
+        }
         newOrderItemEntity.setUndelSupp1(article.getUndelSupp1());
         newOrderItemEntity.setUndelSupp2(article.getUndelSupp2());
         newOrderItemEntity.setUndelSupp3(article.getUndelSupp3());
@@ -231,6 +239,7 @@ public class OrderItemServiceImpl implements OrderItemService {
 
     private void updateOrderItem(OrderItemEntity existingOrderItem, OrderItemDTO orderItemDTO) {
         existingOrderItem.setDelivUnit(orderItemDTO.getDelivUnit());
+        existingOrderItem.setDelivUnitChr(orderItemDTO.getDelivUnit());
         existingOrderItem.setUpdatedBy(orderItemDTO.getClientId().shortValue());
         orderItemRepository.save(existingOrderItem);
     }
@@ -253,7 +262,7 @@ public class OrderItemServiceImpl implements OrderItemService {
     }
 
     private void handleConfirmationSupplier(OrderItemDTO orderItemDTO, OrderItemEntity existingOrderItem) {
-        if (orderItemDTO.getConfSupp1() != null &&  !orderItemDTO.getConfSupp1().equals(existingOrderItem.getConfSupp1())) {
+        if (orderItemDTO.getConfSupp1() != null && !orderItemDTO.getConfSupp1().equals(existingOrderItem.getConfSupp1())) {
             log.info("set confirmation supplier 1 for order item id: {}", existingOrderItem.getOrderItemId());
             existingOrderItem.setConfSupp1(orderItemDTO.getConfSupp1());
         } else if (orderItemDTO.getConfSupp2() != null && !orderItemDTO.getConfSupp2().equals(existingOrderItem.getConfSupp2())) {
@@ -269,22 +278,22 @@ public class OrderItemServiceImpl implements OrderItemService {
     }
 
     private void handleValidateDeliveryQuantity(OrderItemDTO orderItemDTO, OrderItemEntity existingOrderItem, ArticleEntity article) {
-        if (orderItemDTO.getRealSupp1() != null &&  !orderItemDTO.getRealSupp1().equals(existingOrderItem.getRealSupp1())) {
+        if (orderItemDTO.getRealSupp1() != null && !orderItemDTO.getRealSupp1().equals(existingOrderItem.getRealSupp1())) {
             log.info("set real delivery for supplier 1 for order item id: {}", existingOrderItem.getOrderItemId());
             existingOrderItem.setRealSupp1(orderItemDTO.getRealSupp1());
-            var  undelSupp1 = (short) (existingOrderItem.getRealSupp1() - existingOrderItem.getConfSupp1());
+            var undelSupp1 = (short) (existingOrderItem.getRealSupp1() - existingOrderItem.getConfSupp1());
             existingOrderItem.setUndelSupp1(undelSupp1);
             article.setUndelSupp1(undelSupp1);
         } else if (orderItemDTO.getRealSupp2() != null && !orderItemDTO.getRealSupp2().equals(existingOrderItem.getRealSupp2())) {
             log.info("set real delivery for supplier 2 for order item id: {}", existingOrderItem.getOrderItemId());
             existingOrderItem.setRealSupp2(orderItemDTO.getRealSupp2());
-            var  undelSupp2 = (short) (existingOrderItem.getRealSupp2() - existingOrderItem.getConfSupp2());
+            var undelSupp2 = (short) (existingOrderItem.getRealSupp2() - existingOrderItem.getConfSupp2());
             existingOrderItem.setUndelSupp2(undelSupp2);
             article.setUndelSupp1(undelSupp2);
         } else if (orderItemDTO.getRealSupp3() != null && !orderItemDTO.getRealSupp3().equals(existingOrderItem.getRealSupp3())) {
             log.info("set real delivery for supplier 3 for order item id: {}", existingOrderItem.getOrderItemId());
             existingOrderItem.setRealSupp3(orderItemDTO.getRealSupp3());
-            var  undelSupp3 = (short) (existingOrderItem.getRealSupp3() - existingOrderItem.getConfSupp3());
+            var undelSupp3 = (short) (existingOrderItem.getRealSupp3() - existingOrderItem.getConfSupp3());
             existingOrderItem.setUndelSupp3(undelSupp3);
             article.setUndelSupp3(undelSupp3);
         }
@@ -331,5 +340,115 @@ public class OrderItemServiceImpl implements OrderItemService {
                 ),
                 "cristian.voinicaru@thgroup.ch",
                 Language.DE);
+    }
+
+    @Override
+    @Transactional
+    public List<OrderItemDTO> crudOrderChrItemList(@NonNull List<OrderItemDTO> orderItemListDTO) {
+        var isChangeRequest = true;
+        try {
+            var order = orderRepository.findById(orderItemListDTO.getFirst().getOrderId()).orElseThrow(() -> {
+                log.error("Order not found with id: {}", orderItemListDTO.getFirst().getOrderId());
+                return new IllegalArgumentException("Order not found");
+            });
+
+            var client = userRepository.findById(orderItemListDTO.getFirst().getClientId()).orElseThrow(() -> {
+                log.error("Client not found with id: {}", orderItemListDTO.getFirst().getClientId());
+                return new IllegalArgumentException("Client not found");
+            });
+
+            List<OrderItemEntity> orderItemEntities = orderItemRepository.findByOrder(order);
+
+            for (OrderItemDTO orderItemDTO : orderItemListDTO) {
+                var article = articleRepository.findByArticleIdAndActiveTrue(orderItemDTO.getArticleId()).orElseThrow(() -> {
+                    log.error("Article not found for ID: {}", orderItemDTO.getArticleId());
+                    return new IllegalArgumentException("Article not found for ID: " + orderItemDTO.getArticleId());
+                });
+
+                var existingOrderItem = orderItemEntities.stream()
+                        .filter(orderItemEntity -> orderItemEntity.getArticle().getArticleId().equals(orderItemDTO.getArticleId()))
+                        .findFirst()
+                        .orElse(null);
+
+                if (existingOrderItem != null) {
+                    handleExistingOrderChrItem(orderItemDTO, existingOrderItem);
+                } else if (orderItemDTO.getDelivUnitChr() != null && orderItemDTO.getDelivUnitChr() != 0) {
+                    createNewOrderItem(orderItemDTO, order, article, client, isChangeRequest);
+                }
+            }
+
+            order.setChangeRequest(true);
+            orderRepository.save(order);
+            return OrderItemMapper.toDTOs(orderItemRepository.findByOrder(order));
+        } catch (IllegalArgumentException e) {
+            log.error("Error processing order items: {}", e.getMessage());
+            throw e;
+        } catch (Exception e) {
+            log.error("Unexpected error processing order items: {}", e.getMessage());
+            throw new RuntimeException("Unexpected error processing order items", e);
+        }
+    }
+
+    private void handleExistingOrderChrItem(OrderItemDTO orderItemDTO, OrderItemEntity existingOrderItem) {
+        updateOrderChrItem(existingOrderItem, orderItemDTO);
+        log.info("Order change request item updated successfully with id: {}", existingOrderItem.getOrderItemId());
+    }
+
+    private void updateOrderChrItem(OrderItemEntity existingOrderItem, OrderItemDTO orderItemDTO) {
+        existingOrderItem.setDelivUnitChr(orderItemDTO.getDelivUnitChr());
+        existingOrderItem.setUpdatedBy(orderItemDTO.getClientId().shortValue());
+        orderItemRepository.save(existingOrderItem);
+    }
+
+    @Override
+    @Transactional
+    public void approveOrderChr(Long orderId) {
+        var orderEntity = orderRepository.findByOrderIdAndActiveTrue(orderId).orElseThrow(() -> {
+            log.error("Active order not found with id: {}", orderId);
+            return new IllegalArgumentException("Active order not found");
+        });
+
+        List<OrderItemEntity> orderItemEntities = orderItemRepository.findByOrder(orderEntity);
+
+        for (OrderItemEntity orderItem : orderItemEntities) {
+            if (orderItem.getDelivUnitChr() != null) {
+                if (!orderItem.getDelivUnitChr().equals(orderItem.getDelivUnit()) && orderItem.getDelivUnitChr() != 0) {
+                    orderItem.setDelivUnit(orderItem.getDelivUnitChr());
+                    orderItemRepository.save(orderItem);
+                } else if (orderItem.getDelivUnitChr() == 0) {
+                    orderItemRepository.delete(orderItem);
+                }
+            }
+        }
+        orderEntity.setOrderStatus(OrderStatus.PUBLISHED);
+        orderEntity.setChangeRequest(false);
+        orderEntity.setRevision((short) (orderEntity.getRevision() + 1));
+        orderRepository.save(orderEntity);
+
+        // TODO: send mail to client
+    }
+
+    @Override
+    @Transactional
+    public void rejectOrderChr(Long orderId) {
+        var orderEntity = orderRepository.findByOrderIdAndActiveTrue(orderId).orElseThrow(() -> {
+            log.error("Active order not found with id: {}", orderId);
+            return new IllegalArgumentException("Active order not found");
+        });
+
+        List<OrderItemEntity> orderItemEntities = orderItemRepository.findByOrder(orderEntity);
+
+        for (OrderItemEntity orderItem : orderItemEntities) {
+            if (orderItem.getDelivUnit() != null && !orderItem.getDelivUnitChr().equals(orderItem.getDelivUnit())) {
+                orderItem.setDelivUnitChr(orderItem.getDelivUnit());
+                orderItemRepository.save(orderItem);
+            } else if (orderItem.getDelivUnit() == null) {
+                orderItemRepository.delete(orderItem);
+            }
+        }
+        orderEntity.setChangeRequest(false);
+        orderRepository.save(orderEntity);
+
+        // TODO: send mail to client
     }
 }

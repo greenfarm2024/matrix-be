@@ -16,4 +16,10 @@ public interface OrderItemService {
     List<OrderItemDTO> validateDeliveryQuantity(List<OrderItemDTO> orderItemListDTO);
 
     void publishOrder(Long orderId);
+
+    List<OrderItemDTO> crudOrderChrItemList(List<OrderItemDTO> orderItemListDTO);
+
+    void approveOrderChr(Long orderId);
+
+    void rejectOrderChr(Long orderId);
 }

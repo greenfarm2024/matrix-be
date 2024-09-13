@@ -51,5 +51,8 @@ public class OrderEntity extends BaseEntity {
     @Column(name = "order_status", length = 20)
     @NotNull
     private OrderStatus orderStatus;
+
+    @Column(name = "change_request", nullable = false)
+    private boolean isChangeRequest = true;
 }
 

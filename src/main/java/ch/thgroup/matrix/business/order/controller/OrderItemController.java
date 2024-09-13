@@ -105,4 +105,52 @@ public class OrderItemController {
         return new ResponseEntity<>(HttpStatus.OK);
     }
 
+    @PostMapping(path = "/crudorderchritemlist")
+    public ResponseEntity<List<OrderItemDTO>> crudOrderChrItemList(@RequestBody List<OrderItemDTO> orderItemListDTO) {
+        log.info("Received request to CRUD order change request item list");
+        try {
+            var createdOrderItemList = orderItemService.crudOrderChrItemList(orderItemListDTO);
+            log.info("Successfully processed CRUD order change request item list");
+            return new ResponseEntity<>(createdOrderItemList, HttpStatus.CREATED);
+        } catch (IllegalArgumentException e) {
+            log.error("Error processing CRUD order change request item list: {}", e.getMessage());
+            return new ResponseEntity<>(null, HttpStatus.BAD_REQUEST);
+        } catch (Exception e) {
+            log.error("Unexpected error processing CRUD order change request item list: {}", e.getMessage());
+            return new ResponseEntity<>(null, HttpStatus.INTERNAL_SERVER_ERROR);
+        }
+    }
+
+    @GetMapping(path = "/approveorderchr/{orderId}")
+    public ResponseEntity<Void> approveOrderChr(@PathVariable Long orderId) {
+        log.info("Received request to approve order change request for order ID: {}", orderId);
+        try {
+            orderItemService.approveOrderChr(orderId);
+            log.info("Successfully approved order change request for order ID: {}", orderId);
+            return new ResponseEntity<>(HttpStatus.OK);
+        } catch (IllegalArgumentException e) {
+            log.error("Error approving order change request for order ID {}: {}", orderId, e.getMessage());
+            return new ResponseEntity<>(HttpStatus.BAD_REQUEST);
+        } catch (Exception e) {
+            log.error("Unexpected error approving order change request for order ID {}: {}", orderId, e.getMessage());
+            return new ResponseEntity<>(HttpStatus.INTERNAL_SERVER_ERROR);
+        }
+    }
+
+    @GetMapping(path = "/rejectorderchr/{orderId}")
+    public ResponseEntity<Void> rejectOrderChr(@PathVariable Long orderId) {
+        log.info("Received request to reject order change request for order ID: {}", orderId);
+        try {
+            orderItemService.rejectOrderChr(orderId);
+            log.info("Successfully rejected order change request for order ID: {}", orderId);
+            return new ResponseEntity<>(HttpStatus.OK);
+        } catch (IllegalArgumentException e) {
+            log.error("Error rejecting order change request for order ID {}: {}", orderId, e.getMessage());
+            return new ResponseEntity<>(HttpStatus.BAD_REQUEST);
+        } catch (Exception e) {
+            log.error("Unexpected error rejecting order change request for order ID {}: {}", orderId, e.getMessage());
+            return new ResponseEntity<>(HttpStatus.INTERNAL_SERVER_ERROR);
+        }
+    }
+
 }
