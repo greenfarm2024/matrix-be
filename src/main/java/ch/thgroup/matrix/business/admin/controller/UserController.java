@@ -11,12 +11,12 @@ import org.springframework.web.bind.annotation.*;
 
 @RestController
 @RequiredArgsConstructor
-@RequestMapping(ApplicationPaths.API_PATH + "/user")
+@RequestMapping(ApplicationPaths.API_PATH + "/admin")
 public class UserController {
 
     private final UserService userService;
 
-    @PostMapping("/admin/register")
+    @PostMapping("/register")
     // to register a user we have to be logged in as an admin
     public ResponseEntity<UserDTO> register(@RequestBody UserDTO reg){
         return ResponseEntity.ok(userService.register(reg));
@@ -33,26 +33,26 @@ public class UserController {
         return ResponseEntity.ok(userService.refreshToken(req));
     }
 
-    @GetMapping("/admin/getallusers")
+    @GetMapping("/getallusers")
     // to get all users we have to be logged in as an admin
     public ResponseEntity<UserDTO> getAllUsers(){
         return ResponseEntity.ok(userService.getAllUsers());
 
     }
 
-    @GetMapping("/admin/getuserbyid/{userId}")
+    @GetMapping("/getuserbyid/{userId}")
     public ResponseEntity<UserDTO> getUserByID(@PathVariable Long userId){
         return ResponseEntity.ok(userService.getUsersById(userId));
 
     }
 
-    @PutMapping("/admin/updateuser")
+    @PutMapping("/updateuser")
     // to update a user we have to be logged in as an admin
     public ResponseEntity<UserDTO> updateUser(@RequestBody UserDTO userDTO){
         return ResponseEntity.ok(userService.updateUser(userDTO));
     }
 
-    @GetMapping("/adminuser/get-profile")
+    @GetMapping("/getprofile")
     public ResponseEntity<UserDTO> getMyProfile(){
         Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
         String email = authentication.getName();
@@ -60,8 +60,8 @@ public class UserController {
         return  ResponseEntity.status(response.getStatusCode()).body(response);
     }
 
-    @DeleteMapping("/admin/deleteuser/{userId}")
-    public ResponseEntity<UserDTO> deleteUSer(@PathVariable Long userId){
+    @DeleteMapping("/deleteuser/{userId}")
+    public ResponseEntity<UserDTO> deleteUser(@PathVariable Long userId){
         return ResponseEntity.ok(userService.deleteUser(userId));
     }
 

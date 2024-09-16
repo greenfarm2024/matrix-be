@@ -31,3 +31,6 @@ spring:
             platform: org.hibernate.service.jta.platform.internal.NoJtaPlatform
     hibernate:
       ddl-auto: update
+
+server:
+  port: 8080
